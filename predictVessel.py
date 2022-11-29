@@ -65,3 +65,4 @@ if __name__ == "__main__":
     plotVesselTracks(features[:,[2,1]], labels)
     plt.title('Vessel tracks by label')
     plt.show()
+# %%
