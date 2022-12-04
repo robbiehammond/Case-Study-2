@@ -47,3 +47,25 @@ def plotVesselTracks(latLon, clu=None):
     plt.xlabel('Longitude')
     plt.ylabel('Latitude')
     plt.show()
+
+def split_on_VID(data):
+    #find all unique VIDs
+    s = set()
+    for e in data:
+        s.add(e[1])
+
+    # map each VID to a list of points, initially empty
+    VIDtoPoints = {}
+    for vid in s:
+        VIDtoPoints[vid] = []
+
+    # populate lists
+    for e in data:
+        vid = e[1]
+        # VIDtoPoints[vid] = [(time1, latitiude1, longitude1, SOG1, COG1), ...]
+        VIDtoPoints[vid].append([e[2], e[3], e[4], e[5], e[6]])
+    
+    # sort each list of tuples by their first element (i.e. sort them in time)
+    for vid in VIDtoPoints:
+        sorted(VIDtoPoints[vid], key=lambda e : e[0])
+    return VIDtoPoints
