@@ -7,6 +7,7 @@ Utility functions for working with AIS data
 
 import numpy as np
 import matplotlib.pyplot as plt
+from sklearn.neighbors import KDTree
 from matplotlib import markers,colors
 
 def convertTimeToSec(timeVec):
@@ -69,3 +70,16 @@ def split_on_VID(data):
     for vid in VIDtoPoints:
         sorted(VIDtoPoints[vid], key=lambda e : e[0])
     return VIDtoPoints
+
+def build_KD_tree(data):
+    positional_data = np.zeros((len(data), 2))
+    for i in range(len(data)):
+        longitude = data[i][2]
+        latitiude = data[i][3]
+        positional_data[i] = np.array([longitude, latitiude])
+    return (positional_data, KDTree(positional_data))
+
+def closest_point_map(data):
+    positional_data, tree = build_KD_tree(data)
+    closestPoints, inds = tree.query(positional_data, k = 2) #first point is just the same point
+    return (closestPoints[:,1], inds[:,1])

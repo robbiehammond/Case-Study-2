@@ -7,8 +7,11 @@ number of vessels is not specified, assume 20 vessels.
 """
 import random
 from torch import nn
-from utils import split_on_VID
+from sklearn.neighbors import KDTree
+from utils import split_on_VID, closest_point_map
 import torch
+import numpy as np
+
 
 def modelTesting(features, labels, test_features, test_label):
     model = nn.Sequential(
@@ -44,6 +47,7 @@ def modelTesting(features, labels, test_features, test_label):
 
 # Run this code only if being used as a script, not being imported
 if __name__ == "__main__":
+
     
     from utils import loadData, plotVesselTracks
     data = loadData('set1.csv')
@@ -52,6 +56,9 @@ if __name__ == "__main__":
     #labels = data[:,1]
     num_vessels = len(new_data)
     randomVID = random.choice(list(new_data.items()))
+    closests, inds = closest_point_map(data) # map the closest point Y to point X for all X
+
+
 
     # features = time, labels = location
     features = []
