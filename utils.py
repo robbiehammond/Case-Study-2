@@ -5,6 +5,7 @@ Utility functions for working with AIS data
 @author: Kevin S. Xu
 """
 
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KDTree
@@ -15,12 +16,36 @@ def convertTimeToSec(timeVec):
     return sum([a * b for a, b in zip(
             map(int, timeVec.decode('utf-8').split(':')), [3600, 60, 1])])
 
+#https://stackoverflow.com/questions/72574880/feature-engineering-best-way-to-feed-a-360-orientation-variable-into-a-neural -> seems like a good idea
+def trigify(deg):
+    realDeg = math.radians(int(deg / 10))
+    
+    return (np.cos(realDeg), np.sin(realDeg))
+
+
+
 def loadData(filename):
     # Load data from CSV file into numPy array, converting times to seconds
     timestampInd = 2
+    COG = 6
 
     data = np.loadtxt(filename, delimiter=",", dtype=float, skiprows=1, 
                       converters={timestampInd: convertTimeToSec})
+
+    #would do this via converters but can only return a single str or int that way
+    COGs = data[:, COG]
+    cosines = []
+    sines = []
+    for deg in COGs:
+        cos, sin = trigify(deg)
+        sines.append(sin)
+        cosines.append(cos)
+
+    # replace COG with cos, add sin col
+    data[:, 6] = cosines
+    sines = np.array(sines).reshape(-1, 1)
+    data = np.hstack((data, sines))
+
 
     return data
 
