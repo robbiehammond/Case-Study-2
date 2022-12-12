@@ -16,9 +16,6 @@ def convertTimeToSec(timeVec):
     return sum([a * b for a, b in zip(
             map(int, timeVec.decode('utf-8').split(':')), [3600, 60, 1])])
 
-#https://stackoverflow.com/questions/72574880/feature-engineering-best-way-to-feed-a-360-orientation-variable-into-a-neural -> seems like a good idea
-
-
 
 def loadData(filename):
     # Load data from CSV file into numPy array, converting times to seconds
@@ -46,7 +43,9 @@ def plotVesselTracks(latLon, clu=None):
         imClu = plt.scatter(
                 latLon[objLabel,0].ravel(), latLon[objLabel,1].ravel(),
                 marker=markerList[iClu % len(markerList)],
-                c=clu[objLabel], norm=normClu, label=iClu)
+                c=clu[objLabel], 
+                norm=normClu, 
+                label=iClu)
     plt.colorbar(imClu)
     plt.legend().set_draggable(True)
     plt.xlabel('Longitude')
@@ -68,7 +67,7 @@ def split_on_VID(data):
     for e in data:
         vid = e[1]
         # VIDtoPoints[vid] = [(time1, latitiude1, longitude1, SOG1, COG1), ...]
-        VIDtoPoints[vid].append([e[2], e[3], e[4], e[5], e[6]])
+        VIDtoPoints[vid].append([e[2], e[3], e[4], e[5], e[6], e[7]])
     
     # sort each list of tuples by their first element (i.e. sort them in time)
     for vid in VIDtoPoints:
