@@ -11,6 +11,34 @@ from sklearn.neighbors import KDTree
 from utils import split_on_VID, closest_point_map
 import torch
 import numpy as np
+import math
+
+
+
+
+def trigify(deg):
+    realDeg = math.radians(int(deg / 10))
+    
+    return (np.cos(realDeg), np.sin(realDeg))
+
+def preprocess(data):
+    COG = 6
+    COGs = data[:, COG]
+    cosines = []
+    sines = []
+    for deg in COGs:
+        cos, sin = trigify(deg)
+        sines.append(sin)
+        cosines.append(cos)
+
+    # replace COG with cos, add sin col
+    data[:, 6] = cosines
+    sines = np.array(sines).reshape(-1, 1)
+    data = np.hstack((data, sines))
+
+
+    return data
+
 
 
 def modelTesting(features, labels, test_features, test_label):
@@ -47,10 +75,9 @@ def modelTesting(features, labels, test_features, test_label):
 
 # Run this code only if being used as a script, not being imported
 if __name__ == "__main__":
-
-    
     from utils import loadData, plotVesselTracks
     data = loadData('set1.csv')
+    data = preprocess(data)
     new_data = split_on_VID(data)
     #features = data[:,2:]
     #labels = data[:,1]
@@ -74,7 +101,3 @@ if __name__ == "__main__":
     test_feature = last_sample[0]
     test_label = last_sample[1:]
     modelTesting(features, labels, test_feature, test_label)
-
-
-
-
