@@ -12,6 +12,7 @@ from sklearn.metrics import adjusted_rand_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 
+
 def predictWithK(testFeatures, numVessels, trainFeatures=None, 
                  trainLabels=None):
     # Unsupervised prediction, so training data is unused
@@ -58,10 +59,10 @@ if __name__ == "__main__":
           + f'{ariWithoutK}')
 
     #%% Plot vessel tracks colored by prediction and actual labels
-    plotVesselTracks(features[:,[2,1]], predVesselsWithK)
-    plt.title('Vessel tracks by cluster with K')
-    plotVesselTracks(features[:,[2,1]], predVesselsWithoutK)
-    plt.title('Vessel tracks by cluster without K')
+    #plotVesselTracks(features[:,[2,1]], predVesselsWithK)
+    #plt.title('Vessel tracks by cluster with K')
+    #plotVesselTracks(features[:,[2,1]], predVesselsWithoutK)
+    #plt.title('Vessel tracks by cluster without K')
     plotVesselTracks(features[:,[2,1]], labels)
     plt.title('Vessel tracks by label')
     plt.show()

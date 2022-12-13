@@ -10,6 +10,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KDTree
 from matplotlib import markers,colors
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import animation
+from IPython.display import HTML
+
 
 def convertTimeToSec(timeVec):
     # Convert time from hh:mm:ss string to number of seconds
@@ -110,3 +114,17 @@ def closest_point_map(data):
     positional_data, tree = build_KD_tree(data)
     closestPoints, inds = tree.query(positional_data, k = 2) #first point is just the same point
     return (closestPoints[:,1], inds[:,1])
+
+def plotVesselTracks3D(dataset):
+    data = np.loadtxt(dataset, delimiter=",", dtype=float, skiprows=1, 
+                      converters={2: convertTimeToSec})
+    time = data[:,2]
+    lat = data[:,3]
+    long = data[:,4]
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.scatter3D(lat, long, time, c=data[:,1])
+    ax.set_ylabel('Longitude')
+    ax.set_xlabel('Latitude')
+    ax.set_zlabel('Time')
+    plt.show()

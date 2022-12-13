@@ -5,21 +5,28 @@ Script to evaluate prediction accuracy
 @author: Kevin S. Xu
 """
 
+#%%
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import adjusted_rand_score
+from sklearn.model_selection import train_test_split
 
 from utils import loadData, plotVesselTracks
 from predictVessel import predictWithK, predictWithoutK
 
 #%% Load training and test data. Training data may not necessarily be used.
-testData = loadData('set2.csv')
-testFeatures = testData[:,2:]
-testLabels = testData[:,1]
-trainData = loadData('set1.csv')
-trainFeatures = trainData[:,2:]
-trainLabels = trainData[:,1]
+#testData = loadData('set2noVID.csv')
+#testFeatures = testData[:,2:]
+#testLabels = testData[:,1]
+# trainData = loadData('set1.csv')
+# trainFeatures = trainData[:,2:]
+# trainLabels = trainData[:,1]
 
+total_data = loadData('set1.csv')
+total_features = total_data[:,2:]
+total_labels = total_data[:,1]
+
+trainFeatures, testFeatures, trainLabels,testLabels = train_test_split(total_features, total_labels, test_size=0.25, shuffle=True)
 #%% Run prediction algorithms and check accuracy
 numVessels = np.unique(testLabels).size
 predVesselsWithK = predictWithK(testFeatures, numVessels, trainFeatures, 
@@ -46,3 +53,4 @@ plotVesselTracks(testFeatures[:,[2,1]], predVesselsWithoutK)
 plt.title('Vessel tracks by cluster without K')
 plotVesselTracks(testFeatures[:,[2,1]], testLabels)
 plt.title('Vessel tracks by label')
+
