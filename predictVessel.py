@@ -41,7 +41,7 @@ def preprocess(data):
 
 def findClose(points, x, y, time, xdir, ydir, speed, timetable, dists):
     #for other_point in points:
-    dps = speed  / 36000 # deg per sec
+    dps = speed  / 360000 # deg per sec
 
     for t in range(1, 600):
         new_x = x + xdir * dps * t
@@ -113,7 +113,7 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
         #print("time at end: ", cur_point[2])
         #print("lat/long at end: ", cur_point[3], cur_point[4])
         #print("terminated")
-    '''
+    
     # loop through any points that are not labeled
     for point in range(len(data)):
         if data[point][0] not in [i[0] for i in points]:
@@ -126,13 +126,13 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
                 if dist < min_dist:
                     min_dist = dist
                     label = potential_point[1]
-                if dist < 0.1:
+                if dist < 0.04:
                     min_dist = dist
                     label = potential_point[1]
                     break
             data[point][1] = label
             points.append(data[point])
-    '''
+    
     return points
 
 def predictWithoutK(testFeatures, trainFeatures=None, trainLabels=None):
