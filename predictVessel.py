@@ -61,6 +61,8 @@ def findClose(points, x, y, time, xdir, ydir, speed, timetable, dists):
 
 def predictWithK(testFeatures, numVessels, trainFeatures=None, 
                  trainLabels=None):
+    if numVessels > 10:
+        numVessels = 10
     # Unsupervised prediction, so training data is unused
     timetable = {}
     points = []
@@ -71,7 +73,6 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
     data = preprocess(data)
     # Create dictionary for faster data transfer
     for i in range(len(data)):
-        #dists[(data[i][3], data[i][4])] = float('inf')
         if data[i][2] not in timetable.keys():
             timetable[data[i][2]] = []
         timetable[float(data[i][2])].append(data[i])
