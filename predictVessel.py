@@ -10,8 +10,6 @@ number of vessels is not specified, assume 20 vessels.
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import adjusted_rand_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
 from scipy.spatial import distance
 import math
 
@@ -69,8 +67,7 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
     dists = {}
     num_rows,_ = testFeatures.shape
     data = np.concatenate((-1*np.ones(num_rows)[:, np.newaxis], testFeatures), axis=1)    # labels
-    data = np.concatenate((np.arange(num_rows)[:, np.newaxis], data), axis=1)           # indices
-    print(data.shape)
+    data = np.concatenate((np.arange(num_rows)[:, np.newaxis], data), axis=1)             # indices
     data = preprocess(data)
     # Create dictionary for faster data transfer
     for i in range(len(data)):
@@ -80,9 +77,6 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
         timetable[float(data[i][2])].append(data[i])
     # initialize list of starting and ending points (for dataset 3)
     start_end_points = [(4569,7321),(2072,6461),(1,1641), (28,8055), (0,7215), (987,4146), (135,8054), (3,4223), (4,8031), (3714,7157)]
-    
-    
-    
     # Classify k clusters based on calculated trajectories
     for k in range(numVessels):
         # initialize start points 
@@ -125,23 +119,24 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
             data[point][1] = label
             points.append(data[point])
     points.sort(key=lambda e : e[2])
-    return np.array([i[0] for i in points])
+    predVesselsWithK = np.array([i[1] for i in points])
+    return predVesselsWithK
 
 def predictWithoutK(testFeatures, trainFeatures=None, trainLabels=None):
     # Unsupervised prediction, so training data is unused
     
     # Assume 10 vessels based on visual inspection
-    return predictWithK(testFeatures, 8, trainFeatures, trainLabels)
+    return predictWithK(testFeatures, 10, trainFeatures, trainLabels)
 
 # Run this code only if being used as a script, not being imported
 if __name__ == "__main__":
     from utils import loadData, plotVesselTracks
-    data = loadData('set2.csv')
+    data = loadData('set3noVID.csv')
     features = data[:,2:]
     labels = data[:,1]
 
     # Prediction with specified number of vessels
-    numVessels = 8
+    numVessels = 10
     predVesselsWithK = predictWithK(features, numVessels)
 
 
