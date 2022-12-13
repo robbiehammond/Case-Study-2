@@ -39,7 +39,7 @@ def preprocess(data):
 
     return data
 
-def findClose(points, x, y, time, xdir, ydir, speed, timetable):
+def findClose(points, x, y, time, xdir, ydir, speed, timetable, dists):
     #for other_point in points:
     dps = speed  / 36000 # deg per sec
 
@@ -54,8 +54,13 @@ def findClose(points, x, y, time, xdir, ydir, speed, timetable):
            #if points:
                #if otherpoint[0] not in points:   # check if unique ID is already in labeled points
                     dist = distance.euclidean((new_x, new_y), (otherpoint[3], otherpoint[4])) 
-                    if (dist < .05):
-                        return otherpoint
+                    if (dist < .02):
+                        # if this point has already been assigned, don't reassign it
+                        if ((otherpoint[3], otherpoint[4]) in dists.keys()):
+                            continue
+                        else:
+                            dists[(otherpoint[3], otherpoint[4])] = dist
+                            return otherpoint
                # else:
                   #  dist = distance.euclidean((new_x, new_y), (otherpoint[3], otherpoint[4])) 
                   #  old_distance = points.index(otherpoint[0])
@@ -69,6 +74,7 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
     # Unsupervised prediction, so training data is unused
     timetable = {}
     points = []
+    dists = {}
     num_rows,_ = testFeatures.shape
     data = np.concatenate((-1*np.ones(num_rows)[:, np.newaxis], testFeatures), axis=1)    # labels
     data = np.concatenate((np.arange(num_rows)[:, np.newaxis], data), axis=1)           # indices
@@ -76,9 +82,10 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
     data = preprocess(data)
     # Create dictionary for faster data transfer
     for i in range(len(data)):
-            if data[i][2] not in timetable.keys():
-                timetable[data[i][2]] = []
-            timetable[float(data[i][2])].append(data[i])
+        #dists[(data[i][3], data[i][4])] = float('inf')
+        if data[i][2] not in timetable.keys():
+            timetable[data[i][2]] = []
+        timetable[float(data[i][2])].append(data[i])
     # initialize list of starting and ending points (for dataset 3)
     start_end_points = [(4569,7321),(2072,6461),(1,1641), (28,8055), (0,7215), (987,4146), (135,8054), (3,4223), (4,8031), (3714,7157)]
     # Classify k clusters based on calculated trajectories
@@ -92,7 +99,7 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
             mag = data[i][5]
             xdir = data[i][6]
             ydir = data[i][7]
-            next_point = findClose(points, cur_point[3], cur_point[4], cur_point[2], xdir, ydir, mag, timetable)
+            next_point = findClose(points, cur_point[3], cur_point[4], cur_point[2], xdir, ydir, mag, timetable, dists)
             if (np.array_equal(next_point, cur_point)):
                 print("no next point found, same as previous")
                 break
@@ -144,7 +151,6 @@ if __name__ == "__main__":
     # Prediction with specified number of vessels
     numVessels = 10
     predVesselsWithK = predictWithK(features, numVessels)
-    #ariWithK = adjusted_rand_score(labels, predVesselsWithK)
 
 
     '''from utils import loadData, plotVesselTracks
@@ -157,6 +163,8 @@ if __name__ == "__main__":
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     points_np = np.array(predVesselsWithK)
+    print(len(points_np))
+    print(points_np)
     ax.scatter3D(points_np[:,3], points_np[:,4], points_np[:,2], c=points_np[:,1])
     ax.set_ylabel('Longitude')
     ax.set_xlabel('Latitude')
