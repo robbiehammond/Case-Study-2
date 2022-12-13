@@ -41,7 +41,7 @@ def preprocess(data):
 
 def findClose(points, x, y, time, xdir, ydir, speed, timetable, dists):
     #for other_point in points:
-    dps = speed  / 360000 # deg per sec
+    dps = speed  / 3600000000 # deg per sec
 
     for t in range(1, 600):
         new_x = x + xdir * dps * t
@@ -51,22 +51,14 @@ def findClose(points, x, y, time, xdir, ydir, speed, timetable, dists):
             continue
         possible_points = timetable[time + t]
         for otherpoint in possible_points:
-           #if points:
-               #if otherpoint[0] not in points:   # check if unique ID is already in labeled points
-                    dist = distance.euclidean((new_x, new_y), (otherpoint[3], otherpoint[4])) 
-                    if (dist < .02):
-                        # if this point has already been assigned, don't reassign it
-                        if ((otherpoint[3], otherpoint[4]) in dists.keys()):
-                            continue
-                        else:
-                            dists[(otherpoint[3], otherpoint[4])] = dist
-                            return otherpoint
-               # else:
-                  #  dist = distance.euclidean((new_x, new_y), (otherpoint[3], otherpoint[4])) 
-                  #  old_distance = points.index(otherpoint[0])
-                  #  if (dist < points[old_distance][1]):
-                   #     return otherpoint, dist
-                #print(f"match found at t={t}: start: ({x}, {y}), predicted: ({new_x}, {new_y}), acutal: ({otherpoint[3]}, {otherpoint[4]}), dist: {dist}")
+            dist = distance.euclidean((new_x, new_y), (otherpoint[3], otherpoint[4])) 
+            if (dist < .02):
+                # if this point has already been assigned, don't reassign it
+                if ((otherpoint[3], otherpoint[4]) in dists.keys()):
+                    continue
+                else:
+                    dists[(otherpoint[3], otherpoint[4])] = dist
+                    return otherpoint
     return None
 
 def predictWithK(testFeatures, numVessels, trainFeatures=None, 
@@ -88,6 +80,9 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
         timetable[float(data[i][2])].append(data[i])
     # initialize list of starting and ending points (for dataset 3)
     start_end_points = [(4569,7321),(2072,6461),(1,1641), (28,8055), (0,7215), (987,4146), (135,8054), (3,4223), (4,8031), (3714,7157)]
+    
+    
+    
     # Classify k clusters based on calculated trajectories
     for k in range(numVessels):
         # initialize start points 
@@ -101,19 +96,16 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
             ydir = data[i][7]
             next_point = findClose(points, cur_point[3], cur_point[4], cur_point[2], xdir, ydir, mag, timetable, dists)
             if (np.array_equal(next_point, cur_point)):
-                print("no next point found, same as previous")
+                #print("no next point found, same as previous")
                 break
             elif next_point is not None:
                 cur_point[1] = k    # set cluster label
                 points.append(cur_point)    # add labeled point to list
                 cur_point = next_point
             else:
-                print("no next point found")
+                #print("no next point found")
                 break
-        #print("time at end: ", cur_point[2])
-        #print("lat/long at end: ", cur_point[3], cur_point[4])
-        #print("terminated")
-    
+   
     # loop through any points that are not labeled
     for point in range(len(data)):
         if data[point][0] not in [i[0] for i in points]:
@@ -126,30 +118,30 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
                 if dist < min_dist:
                     min_dist = dist
                     label = potential_point[1]
-                if dist < 0.04:
+                if dist < 0.03:
                     min_dist = dist
                     label = potential_point[1]
                     break
             data[point][1] = label
             points.append(data[point])
-    
-    return points
+    points.sort(key=lambda e : e[2])
+    return np.array([i[0] for i in points])
 
 def predictWithoutK(testFeatures, trainFeatures=None, trainLabels=None):
     # Unsupervised prediction, so training data is unused
     
     # Assume 10 vessels based on visual inspection
-    return predictWithK(testFeatures, 10, trainFeatures, trainLabels)
+    return predictWithK(testFeatures, 8, trainFeatures, trainLabels)
 
 # Run this code only if being used as a script, not being imported
 if __name__ == "__main__":
     from utils import loadData, plotVesselTracks
-    data = loadData('set3noVID.csv')
+    data = loadData('set2.csv')
     features = data[:,2:]
-    # labels = data[:,1]
+    labels = data[:,1]
 
     # Prediction with specified number of vessels
-    numVessels = 10
+    numVessels = 8
     predVesselsWithK = predictWithK(features, numVessels)
 
 
@@ -158,22 +150,8 @@ if __name__ == "__main__":
     features = data[:,2:]
     labels = data[:,1]'''
 
-#%%
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    ax = plt.axes(projection='3d')
-    points_np = np.array(predVesselsWithK)
-    print(len(points_np))
-    print(points_np)
-    ax.scatter3D(points_np[:,3], points_np[:,4], points_np[:,2], c=points_np[:,1])
-    ax.set_ylabel('Longitude')
-    ax.set_xlabel('Latitude')
-    ax.set_zlabel('Time')
-    ax.legend()
-    plt.show()
-
     #%% Plot all vessel tracks with no coloring
-    '''
+
     plotVesselTracks(features[:,[2,1]])
     plt.title('All vessel tracks')
     
@@ -194,10 +172,12 @@ if __name__ == "__main__":
           + f'{ariWithoutK}')
 
     #%% Plot vessel tracks colored by prediction and actual labels
-    plotVesselTracks(features[:,[2,1]], predVesselsWithK)
+    plotVesselTracks(features[:,[2,1]], np.array(predVesselsWithK))
     plt.title('Vessel tracks by cluster with K')
-    plotVesselTracks(features[:,[2,1]], predVesselsWithoutK)
+    plotVesselTracks(features[:,[2,1]], np.array(predVesselsWithoutK))
     plt.title('Vessel tracks by cluster without K')
     plotVesselTracks(features[:,[2,1]], labels)
     plt.title('Vessel tracks by label')
-    plt.show()'''
+    plt.show()
+
+# %%
