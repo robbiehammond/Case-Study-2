@@ -84,5 +84,6 @@ def build_KD_tree(data):
 
 def closest_point_map(data):
     positional_data, tree = build_KD_tree(data)
+    
     closestPoints, inds = tree.query(positional_data, k = 2) #first point is just the same point
     return (closestPoints[:,1], inds[:,1])

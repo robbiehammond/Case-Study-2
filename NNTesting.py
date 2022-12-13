@@ -114,33 +114,38 @@ def test(model, data):
     plotVesselTracks(features[:,[2,1]], labels)
 
 
+
+
+
+def findClose(points, x, y, time, xdir, ydir, speed):
+    #for other_point in points:
+    nmps = (speed / 10) #nautical miles per sec
+    dps = nmps / 60 #deg per sec
+    for t in range(1, 4):
+        new_x = x + xdir * dps * t
+        new_y = y + ydir * dps * t
+        for otherpoint in points:
+            if otherpoint[3] == x and otherpoint[4] == y: # just the original point 
+                continue
+            elif distance.euclidean((otherpoint[3], otherpoint[4]), (new_x, new_y)) < .05:
+                print(distance.euclidean((otherpoint[3], otherpoint[4]), (new_x, new_y)))
+
+
+
+
 # Run this code only if being used as a script, not being imported
 if __name__ == "__main__":
     from utils import loadData, plotVesselTracks
     data = loadData('set1.csv')
     data = preprocess(data)
-    new_data = split_on_VID(data)
-    num_vessels = len(new_data)
-    randomVID = random.choice(list(new_data.items()))
-    #closests, inds = closest_point_map(data) # map the closest point Y to point X for all X
+    for i in range(len(data)):
+        mag = data[i][5]
+        xdir = data[i][6]
+        ydir = data[i][7]
+        findClose(data, data[i][3], data[i][4], data[i][2], xdir, ydir, mag)
 
-    # features = (cur time, lat, long, SOG, cos(COG), sin(COG), time to pred)
-    features = []
-    labels = []
-    for i in range(len(randomVID[1]) - 2):
-        l = torch.FloatTensor(randomVID[1][i + 1][1:3])
-        labels.append(l)
-        f = randomVID[1][i][0:]
-        f.append(randomVID[1][i + 1][0])
-        features.append(f)
+        break;
 
-    model = getModel()
-    train(model, features, labels, 20)
-
-    data2 = loadData('set2.csv')
-    data2 = preprocess(data2)
-    sorted(data2, key=lambda e : e[1])
-    test(model, data2)
 
 
 
