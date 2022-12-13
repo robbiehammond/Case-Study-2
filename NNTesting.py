@@ -94,7 +94,6 @@ def test(model, data):
         closePoint,ind  = findClose(f[1:3], next_points)
         print(i, ind)
         if closePoint is not None:
-            prev_assignment = assignments[ind]
             assignments[i] = assignments[ind]
             pass
         else:
@@ -117,34 +116,68 @@ def test(model, data):
 
 
 
-def findClose(points, x, y, time, xdir, ydir, speed):
+def findClose(points, x, y, time, xdir, ydir, speed, timetable):
     #for other_point in points:
-    nmps = (speed / 10) #nautical miles per sec
-    dps = nmps / 60 #deg per sec
-    for t in range(1, 4):
+    dps = (speed * 10) / 3600 #deg per sec
+
+    for t in range(1, 20):
         new_x = x + xdir * dps * t
         new_y = y + ydir * dps * t
-        for otherpoint in points:
+
+        #if no points at this time, give up
+        if (time + t not in timetable.keys()):
+            continue
+
+        possible_points = timetable[time + t]
+        for otherpoint in possible_points:
+            dist = distance.euclidean((new_x, new_y), (otherpoint[3], otherpoint[4])) 
+            #print(dist)
             if otherpoint[3] == x and otherpoint[4] == y: # just the original point 
                 continue
-            elif distance.euclidean((otherpoint[3], otherpoint[4]), (new_x, new_y)) < .05:
-                print(distance.euclidean((otherpoint[3], otherpoint[4]), (new_x, new_y)))
+            elif (dist < .002):
+                return otherpoint
+                #print(f"match found at t={t}: start: ({x}, {y}), predicted: ({new_x}, {new_y}), acutal: ({otherpoint[3]}, {otherpoint[4]}), dist: {dist}")
+    return None
 
 
 
 
+#START IND = 1095
+#END IND = 3140
 # Run this code only if being used as a script, not being imported
 if __name__ == "__main__":
     from utils import loadData, plotVesselTracks
-    data = loadData('set1.csv')
+    timetable = {}
+
+    data = loadData('set2.csv')
     data = preprocess(data)
     for i in range(len(data)):
+        if data[i][2] not in timetable.keys():
+            timetable[data[i][2]] = []
+        timetable[data[i][2]].append(data[i])
+
+    start_point = data[1095]
+    end_point = data[3140]
+    cur_point = start_point
+    print(start_point[3], start_point[4])
+    while (np.array(cur_point) != np.array(end_point)).any():
         mag = data[i][5]
         xdir = data[i][6]
         ydir = data[i][7]
-        findClose(data, data[i][3], data[i][4], data[i][2], xdir, ydir, mag)
+        next_point = findClose(data, start_point[3], start_point[4], start_point[2], xdir, ydir, mag, timetable)
+        if (np.array(next_point) == np.array(cur_point)).all():
+            print("no next point found")
+            break
+        elif next_point is not None:
+            cur_point = next_point
+            print(next_point[3], next_point[4], next_point[2])
+        else:
+            print("no next point found")
+            break
+    print("terminated")
 
-        break;
+    #findClose(data, data[i][3], data[i][4], data[i][2], xdir, ydir, mag, timetable)
+    #findClose(data)
 
 
 
