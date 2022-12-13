@@ -5,6 +5,7 @@ number of vessels is not specified, assume 20 vessels.
 
 @author: Kevin S. Xu
 """
+
 import random
 from torch import nn
 from scipy.spatial import distance
@@ -40,6 +41,7 @@ def preprocess(data):
 
     return data
 
+'''
 def findClose(f, next_points):
     lat = f[0]
     long = f[1]
@@ -56,7 +58,7 @@ def findClose(f, next_points):
             bestPoint = otherPos
             bestInd = point[1]
     return (bestPoint, bestInd)
-
+'''
 
 
 def getModel():
@@ -118,23 +120,18 @@ def test(model, data):
 
 def findClose(points, x, y, time, xdir, ydir, speed, timetable):
     #for other_point in points:
-    dps = (speed * 10) / 3600 #deg per sec
+    dps = speed  / 36000 #deg per sec
 
-    for t in range(1, 20):
+    for t in range(1, 600):
         new_x = x + xdir * dps * t
         new_y = y + ydir * dps * t
-
         #if no points at this time, give up
-        if (time + t not in timetable.keys()):
+        if (float(time + t) not in timetable.keys()):
             continue
-
         possible_points = timetable[time + t]
         for otherpoint in possible_points:
             dist = distance.euclidean((new_x, new_y), (otherpoint[3], otherpoint[4])) 
-            #print(dist)
-            if otherpoint[3] == x and otherpoint[4] == y: # just the original point 
-                continue
-            elif (dist < .002):
+            if (dist < .019):
                 return otherpoint
                 #print(f"match found at t={t}: start: ({x}, {y}), predicted: ({new_x}, {new_y}), acutal: ({otherpoint[3]}, {otherpoint[4]}), dist: {dist}")
     return None
@@ -148,29 +145,32 @@ def findClose(points, x, y, time, xdir, ydir, speed, timetable):
 if __name__ == "__main__":
     from utils import loadData, plotVesselTracks
     timetable = {}
-
+    points = []
     data = loadData('set2.csv')
     data = preprocess(data)
     for i in range(len(data)):
         if data[i][2] not in timetable.keys():
             timetable[data[i][2]] = []
-        timetable[data[i][2]].append(data[i])
+        timetable[float(data[i][2])].append(data[i])
 
     start_point = data[1095]
     end_point = data[3140]
+    print("Ending time", end_point[2])
     cur_point = start_point
-    print(start_point[3], start_point[4])
-    while (np.array(cur_point) != np.array(end_point)).any():
+    while (cur_point[2] < end_point[2]): #np.array(cur_point) != np.array(end_point)).any():
         mag = data[i][5]
         xdir = data[i][6]
         ydir = data[i][7]
-        next_point = findClose(data, start_point[3], start_point[4], start_point[2], xdir, ydir, mag, timetable)
-        if (np.array(next_point) == np.array(cur_point)).all():
+        next_point = findClose(data, cur_point[3], cur_point[4], cur_point[2], xdir, ydir, mag, timetable)
+        if (np.array_equal(next_point, cur_point)):
             print("no next point found")
             break
         elif next_point is not None:
+            #print("REASSIGNEMNT OF CURRENT")
+            points.append(cur_point)
             cur_point = next_point
-            print(next_point[3], next_point[4], next_point[2])
+            #print(next_point)
+            #print(next_point[3], next_point[4], next_point[2])
         else:
             print("no next point found")
             break
@@ -192,3 +192,5 @@ if __name__ == "__main__":
 
 
 
+
+# %%
