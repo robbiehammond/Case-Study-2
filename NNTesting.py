@@ -153,8 +153,8 @@ if __name__ == "__main__":
             timetable[data[i][2]] = []
         timetable[float(data[i][2])].append(data[i])
 
-    start_point = data[3714]
-    end_point = data[7157]
+    start_point = data[4569]
+    end_point = data[7321]
     print("Ending time", end_point[2])
     print("Starting point", start_point)
     cur_point = start_point

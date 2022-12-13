@@ -51,8 +51,8 @@ def findClose(points, x, y, time, xdir, ydir, speed, timetable):
             continue
         possible_points = timetable[time + t]
         for otherpoint in possible_points:
-           # if points:
-               # if otherpoint[0] not in points:   # check if unique ID is already in labeled points
+           #if points:
+               #if otherpoint[0] not in points:   # check if unique ID is already in labeled points
                     dist = distance.euclidean((new_x, new_y), (otherpoint[3], otherpoint[4])) 
                     if (dist < .05):
                         return otherpoint
@@ -66,12 +66,11 @@ def findClose(points, x, y, time, xdir, ydir, speed, timetable):
 
 def predictWithK(testFeatures, numVessels, trainFeatures=None, 
                  trainLabels=None):
-    predVessels = []
     # Unsupervised prediction, so training data is unused
     timetable = {}
     points = []
     num_rows,_ = testFeatures.shape
-    data = np.concatenate((np.zeros(num_rows)[:, np.newaxis], testFeatures), axis=1)    # labels
+    data = np.concatenate((-1*np.ones(num_rows)[:, np.newaxis], testFeatures), axis=1)    # labels
     data = np.concatenate((np.arange(num_rows)[:, np.newaxis], data), axis=1)           # indices
     print(data.shape)
     data = preprocess(data)
@@ -82,9 +81,6 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
             timetable[float(data[i][2])].append(data[i])
     # initialize list of starting and ending points (for dataset 3)
     start_end_points = [(4569,7321),(2072,6461),(1,1641), (28,8055), (0,7215), (987,4146), (135,8054), (3,4223), (4,8031), (3714,7157)]
-    #import random
-    #random.seed(2)
-    #random.shuffle(start_end_points)
     # Classify k clusters based on calculated trajectories
     for k in range(numVessels):
         # initialize start points 
@@ -110,8 +106,26 @@ def predictWithK(testFeatures, numVessels, trainFeatures=None,
         #print("time at end: ", cur_point[2])
         #print("lat/long at end: ", cur_point[3], cur_point[4])
         #print("terminated")
-    
-    # TODO: add remaining points to nearest cluster 
+    '''
+    # loop through any points that are not labeled
+    for point in range(len(data)):
+        if data[point][0] not in [i[0] for i in points]:
+            min_dist = 0.2
+            label = 1
+            # find closest point in labeled points
+            for i in range(len(points)):
+                potential_point = points[i]
+                dist = distance.euclidean((potential_point[3], potential_point[4]), (data[point][3], data[point][4]))
+                if dist < min_dist:
+                    min_dist = dist
+                    label = potential_point[1]
+                if dist < 0.1:
+                    min_dist = dist
+                    label = potential_point[1]
+                    break
+            data[point][1] = label
+            points.append(data[point])
+    '''
     return points
 
 def predictWithoutK(testFeatures, trainFeatures=None, trainLabels=None):
