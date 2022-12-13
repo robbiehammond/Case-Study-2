@@ -16,8 +16,6 @@ import numpy as np
 import math
 
 
-
-
 def trigify(deg):
     realDeg = math.radians(int(deg / 10))
     
@@ -121,8 +119,8 @@ def test(model, data):
 def findClose(points, x, y, time, xdir, ydir, speed, timetable):
     #for other_point in points:
     dps = speed  / 36000 # deg per sec
-
-    for t in range(1, 60):
+    #dps = speed / 50000
+    for t in range(1, 600):
         new_x = x + xdir * dps * t
         new_y = y + ydir * dps * t
         #if no points at this time, give up
@@ -155,9 +153,10 @@ if __name__ == "__main__":
             timetable[data[i][2]] = []
         timetable[float(data[i][2])].append(data[i])
 
-    start_point = data[4]
-    end_point = data[8031]
+    start_point = data[3714]
+    end_point = data[7157]
     print("Ending time", end_point[2])
+    print("Starting point", start_point)
     cur_point = start_point
     while (cur_point[2] < end_point[2]): #np.array(cur_point) != np.array(end_point)).any():
         mag = data[i][5]
@@ -168,7 +167,6 @@ if __name__ == "__main__":
             print("no next point found, same as previous")
             break
         elif next_point is not None:
-            #print("REASSIGNEMNT OF CURRENT")
             points.append(cur_point)
             cur_point = next_point
             #print(next_point)
@@ -188,24 +186,22 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     fig = plt.figure()
     ax = plt.axes(projection='3d')
-    ax.scatter3D(points_np[:,3], points_np[:,4], points_np[:,2])
-    ax.scatter3D([36.94173], [-75.980632], [52717.0], 'red')
+    ax.scatter3D(points_np[:,3], points_np[:,4], points_np[:,2], c=points_np[:,1])
+    ax.scatter3D([cur_point[3]], [cur_point[4]], [cur_point[2]], 'red')
     ax.set_ylabel('Longitude')
     ax.set_xlabel('Latitude')
     ax.set_zlabel('Time')
     plt.show()
     print(len(points))
 
+    '''
     fig = plt.figure()
     ax = plt.axes(projection='3d')
     ax.scatter3D(data[:,3], data[:,4], data[:,2])
-    ax.scatter3D([36.94173], [-75.980632], [52717.0], 'red')
+    ax.scatter3D([cur_point[3]], [cur_point[4]], [cur_point[2]], 'red')
     ax.set_ylabel('Longitude')
     ax.set_xlabel('Latitude')
     ax.set_zlabel('Time')
     plt.show()
-
-
-    
-
+    '''
 # %%

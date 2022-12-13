@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KDTree
 from matplotlib import markers,colors
+from scipy.spatial import distance
+
 
 def convertTimeToSec(timeVec):
     # Convert time from hh:mm:ss string to number of seconds
@@ -87,3 +89,45 @@ def closest_point_map(data):
     
     closestPoints, inds = tree.query(positional_data, k = 2) #first point is just the same point
     return (closestPoints[:,1], inds[:,1])
+
+
+def trigify(deg):
+    realDeg = math.radians(int(deg / 10))
+    
+    return (np.cos(realDeg), np.sin(realDeg))
+
+def preprocess(data):
+    COG = 6
+    COGs = data[:, COG]
+    cosines = []
+    sines = []
+    for deg in COGs:
+        cos, sin = trigify(deg)
+        sines.append(sin)
+        cosines.append(cos)
+
+    # replace COG with cos, add sin col
+    data[:, 6] = cosines
+    sines = np.array(sines).reshape(-1, 1)
+    data = np.hstack((data, sines))
+
+
+    return data
+
+def findClose(points, x, y, time, xdir, ydir, speed, timetable):
+    #for other_point in points:
+    dps = speed  / 36000 # deg per sec
+
+    for t in range(1, 60):
+        new_x = x + xdir * dps * t
+        new_y = y + ydir * dps * t
+        #if no points at this time, give up
+        if (float(time + t) not in timetable.keys()):
+            continue
+        possible_points = timetable[time + t]
+        for otherpoint in possible_points:
+            dist = distance.euclidean((new_x, new_y), (otherpoint[3], otherpoint[4])) 
+            if (dist < .02):
+                return otherpoint
+                #print(f"match found at t={t}: start: ({x}, {y}), predicted: ({new_x}, {new_y}), acutal: ({otherpoint[3]}, {otherpoint[4]}), dist: {dist}")
+    return None
